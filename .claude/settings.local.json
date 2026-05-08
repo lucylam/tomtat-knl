@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/PHUOC VINH/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/6c6e7285-4ba9-46bb-8726-f68742c32668/549f03c0-e322-4ff5-8712-f4cd5dd20032/skills/xlsx/**)",
+      "Bash(python -c ' *)",
+      "Bash(pip install *)"
+    ]
+  }
+}

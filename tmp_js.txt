@@ -1,0 +1,1317 @@
+// ===== DATA =====
+const data = [
+  {
+    id: 0, stt: 1, factory: 'amo', factoryName: 'AMMONIA',
+    name: '1. Khử lưu huỳnh', sub: 'Desulfurization',
+    goal: 'Loại bỏ lưu huỳnh (S) trong khí tự nhiên đầu vào để tránh "ngộ độc" xúc tác tại Primary Reformer. Lưu huỳnh dù ở lượng rất nhỏ cũng làm mất hoạt tính xúc tác.',
+    input: 'Khí tự nhiên (NG) từ GPP Cà Mau\nHydro tuần hoàn (H₂)',
+    output: 'Khí tự nhiên đã khử S (tổng S < 0.05 ppm)\n→ Đưa đến Reforming',
+    principle: '① Hydro hóa: Lưu huỳnh hữu cơ & vô cơ phản ứng với H₂ tại R04201 (xúc tác Co-Mo TK-250, hiện dùng Ni-Mo TK-261) → chuyển thành H₂S.\n② Hấp phụ: H₂S đi qua R04202A/B chứa ZnO (HTZ-5) → ZnO + H₂S → ZnS + H₂O, loại sạch H₂S.',
+    equipment: 'R04201: Hydrogenator (xúc tác Co-Mo/Ni-Mo)\nR04202A/B: Sulphur Absorber (ZnO)\nE04204-1/2/3: Feed Gas Preheater',
+    params: 'Tỉ lệ H₂/HC ≈ 0.05 Nm³/kg\nNhiệt độ vào R04201 ≈ 350°C\nS ra khỏi R04202A < 0.05 ppm'
+  },
+  {
+    id: 1, stt: 2, factory: 'amo', factoryName: 'AMMONIA',
+    name: '2. Reforming', sub: 'Primary & Secondary',
+    goal: 'Chuyển hóa khí tự nhiên (CH₄), hơi nước và không khí thành H₂ và N₂ — hai nguyên liệu chính để tổng hợp NH₃.',
+    input: 'Khí tự nhiên đã khử S\nHơi nước cao áp (Steam)\nKhông khí (Process Air)',
+    output: 'Khí tổng hợp giàu H₂ và N₂\nCO, CO₂ (sản phẩm phụ)\n→ Đưa đến cụm Chuyển hóa CO',
+    principle: '① Primary Reformer (F04201): CH₄ + H₂O → CO + 3H₂ (phản ứng thu nhiệt, cần đốt ngoài ống xúc tác). Nhiệt độ ra ~800°C.\n② Secondary Reformer (R04203): Thêm không khí (N₂ + O₂), O₂ đốt cháy một phần H₂ để cấp nhiệt, đồng thời đưa N₂ vào đúng tỉ lệ H₂:N₂ = 3:1.',
+    equipment: 'F04201: Primary Reformer\nR04203: Secondary Reformer\nE04201: Feed Gas/Steam Preheater\nK04421: Process Air Compressor',
+    params: 'Nhiệt độ vào F04201 ≈ 535°C\nNhiệt độ ra F04201 ≈ 800°C\nÁp suất ≈ 3.43 MPaG'
+  },
+  {
+    id: 2, stt: 3, factory: 'amo', factoryName: 'AMMONIA',
+    name: '3. Chuyển hóa CO', sub: 'CO Shift — HTS & LTS',
+    goal: 'Chuyển CO (độc, không dùng được) thành CO₂ (dễ tách) và tạo thêm H₂, tăng hiệu suất thu hồi hydro.',
+    input: 'Khí tổng hợp chứa CO, H₂, N₂, CO₂, H₂O từ Secondary Reformer',
+    output: 'Khí có hàm lượng CO rất thấp\nCO₂ tăng lên\nH₂ tăng thêm\n→ Đưa đến cụm Tách CO₂',
+    principle: 'Phản ứng Water-Gas Shift: CO + H₂O → CO₂ + H₂ (tỏa nhiệt).\n① HTS: Nhiệt độ cao (~350-420°C), xúc tác Fe-Cr, chuyển phần lớn CO.\n② LTS: Nhiệt độ thấp (~200-250°C), xúc tác Cu-Zn, chuyển nốt CO còn lại xuống rất thấp.',
+    equipment: 'R04204: HTS Reactor (xúc tác Fe-Cr)\nR04206: LTS Reactor (xúc tác Cu-Zn)\nCác thiết bị trao đổi nhiệt trung gian',
+    params: 'HTS: 350-420°C\nLTS: 200-250°C\nCO sau LTS còn rất thấp (< 0.3%)'
+  },
+  {
+    id: 3, stt: 4, factory: 'amo', factoryName: 'AMMONIA',
+    name: '4. Tách CO₂', sub: 'CO₂ Removal',
+    goal: 'Loại bỏ CO₂ khỏi khí tổng hợp vì CO₂ là chất độc với xúc tác tổng hợp NH₃. Đồng thời thu hồi CO₂ để cấp cho xưởng Urê (1.790 tấn/ngày).',
+    input: 'Khí tổng hợp chứa CO₂ (~18%)\nDung dịch hấp thụ (aMDEA)',
+    output: 'Khí tổng hợp sạch CO₂\nCO₂ tinh khiết (≥99 vol%) → cấp cho xưởng Urê\n→ Khí đến cụm Mê tan hóa',
+    principle: 'Sử dụng dung dịch aMDEA (activated Methyl Diethanolamine):\n① Hấp thụ: Khí đi từ dưới lên, dung dịch aMDEA đi từ trên xuống → CO₂ bị giữ lại.\n② Tái sinh: Dung dịch giàu CO₂ được đun nóng/giảm áp để giải phóng CO₂, dung dịch nghèo CO₂ quay lại.',
+    equipment: 'C04301: CO₂ Absorber (tháp hấp thụ)\nC04302: CO₂ Stripper (tháp tái sinh)\nBơm dung dịch aMDEA\nCác thiết bị TĐN',
+    params: 'CO₂ đầu ra ≥ 99 vol% (dry)\nCO₂ cấp Urê: 1.790 tấn/ngày\nÁp suất: 0.05 MPaG, 45°C'
+  },
+  {
+    id: 4, stt: 5, factory: 'amo', factoryName: 'AMMONIA',
+    name: '5. Mê tan hóa', sub: 'Methanation',
+    goal: 'Loại bỏ vết CO và CO₂ còn sót lại (vài trăm ppm) vì chúng là chất độc xúc tác tổng hợp NH₃. Đây là bước "đánh bóng" cuối cùng cho khí.',
+    input: 'Khí tổng hợp còn vết CO, CO₂ (vài trăm ppm)\nĐã qua tách CO₂',
+    output: 'Khí tổng hợp sạch (CO + CO₂ < 5 ppm)\nChủ yếu H₂ và N₂ đúng tỉ lệ\n→ Đưa đến cụm Tổng hợp NH₃',
+    principle: 'Phản ứng ngược của reforming:\nCO + 3H₂ → CH₄ + H₂O\nCO₂ + 4H₂ → CH₄ + 2H₂O\nXúc tác Ni ở ~300°C. Tiêu tốn ít H₂ nhưng đảm bảo khí tổng hợp đủ sạch.',
+    equipment: 'R04207: Methanator (xúc tác Ni — PK-7R hoặc tương đương)',
+    params: 'Nhiệt độ ≈ 300°C\nCO + CO₂ ra < 5 ppm'
+  },
+  {
+    id: 5, stt: 6, factory: 'amo', factoryName: 'AMMONIA',
+    name: '6. Tổng hợp NH₃', sub: 'Ammonia Synthesis Loop',
+    goal: 'Phản ứng chính tạo ra sản phẩm ammonia (NH₃) lỏng từ N₂ và H₂. Đây là "trái tim" của xưởng.',
+    input: 'Khí tổng hợp sạch (H₂ + N₂, tỉ lệ 3:1)\nKhí tuần hoàn chưa phản ứng hết',
+    output: 'NH₃ lỏng (min 99.8 wt%)\n1.350 tấn/ngày\n→ Bồn chứa NH₃ / Xưởng Urê',
+    principle: 'N₂ + 3H₂ ⇌ 2NH₃ + Q (tỏa nhiệt).\n① Nén khí (K04431) lên áp suất ~13.73 MPa.\n② Đun nóng qua TĐN lên ~254°C.\n③ Qua tháp R04501 xúc tác sắt → NH₃ hình thành.\n④ Làm lạnh, NH₃ ngưng tụ thành lỏng.\n⑤ Tách NH₃ lỏng tại S501, khí chưa phản ứng quay lại vòng tuần hoàn.',
+    equipment: 'K04431: Synthesis Gas Compressor\nR04501: Ammonia Converter (xt sắt KM1-R, KM1)\nE501: Waste Heat Boiler\nE503: Hot Heat Exchanger\nE506/E508: Ammonia Chillers\nS501: Ammonia Separator',
+    params: 'Áp suất: ~13.73 MPa\nNhiệt độ vào tháp: ~254°C\nNH₃ sản phẩm: ≥99.8 wt%\nNhiệt độ làm lạnh: đến -5°C'
+  },
+  {
+    id: 6, stt: 7, factory: 'amo', factoryName: 'AMMONIA',
+    name: '7. Vòng làm lạnh', sub: 'Refrigeration',
+    goal: 'Cung cấp lạnh để ngưng tụ NH₃ từ khí tổng hợp, thu hồi NH₃ từ purge gas/inert gas, và hỗ trợ làm lạnh cho xưởng Urê (tạo hạt).',
+    input: 'NH₃ lỏng làm môi chất lạnh\nHơi NH₃ sau khi bay hơi (hấp thu nhiệt)',
+    output: 'NH₃ lỏng ở nhiệt độ thấp\nCấp lạnh cho các chiller E506, E508\nCấp lạnh cho xưởng Tạo hạt',
+    principle: 'Chu trình lạnh nén hơi: NH₃ lỏng bay hơi (hấp thu nhiệt từ khí cần làm lạnh) → NH₃ hơi được máy nén nén lại → ngưng tụ thành lỏng bằng nước mát → quay lại chu trình.',
+    equipment: 'Máy nén lạnh NH₃\nE506: 1st Ammonia Chiller\nE508: 2nd Ammonia Chiller\nBình ngưng tụ, bình chứa NH₃ lỏng',
+    params: 'Nhiệt độ bay hơi: đến -33°C\nCấp lạnh cho nhiều hộ tiêu thụ'
+  },
+  {
+    id: 7, stt: 8, factory: 'amo', factoryName: 'AMMONIA',
+    name: '8. Thu hồi NH₃', sub: 'ARU — Ammonia Recovery Unit',
+    goal: 'Thu hồi NH₃ từ các dòng khí thải (purge gas, letdown gas, inert gas) để không lãng phí sản phẩm và giảm ô nhiễm.',
+    input: 'Purge gas, letdown gas, inert gas (chứa NH₃)\nNước hấp thụ',
+    output: 'NH₃ thu hồi → quay lại hệ thống\nKhí sạch NH₃ → đuốc/nhiên liệu',
+    principle: '① Hấp thụ NH₃ bằng nước trong các tháp hấp thụ (quá trình tỏa nhiệt).\n② Giải hấp bằng chưng cất: đun nóng dung dịch NH₃-nước → NH₃ bay hơi → ngưng tụ thu hồi.',
+    equipment: 'C04551: Purge Gas Absorber\nC04552: Off-gas Absorber\nC04553: Distillation Column',
+    params: 'NH₃ slip ra C04551 < 25 ppm\nNhiệt độ khí vào ≈ 54°C'
+  },
+  {
+    id: 8, stt: 9, factory: 'amo', factoryName: 'AMMONIA',
+    name: '9. Thu hồi H₂', sub: 'HRU — Hydrogen Recovery Unit',
+    goal: 'Thu hồi H₂ từ purge gas (khí xả) để tái sử dụng, tăng hiệu suất sản xuất. Phần Off-gas dùng làm nhiên liệu đốt cho Reformer.',
+    input: 'Purge gas (chứa H₂, N₂, CH₄, Ar, NH₃)',
+    output: 'H₂ thu hồi → về đầu hút K04431\nOff-gas → nhiên liệu cho F04201',
+    principle: 'Sử dụng rây phân tử (Molecular Sieve/PSA) để tách H₂ dựa trên kích thước phân tử. Hiệu quả phụ thuộc vào chênh áp qua thiết bị.',
+    equipment: 'Cụm PSA (Pressure Swing Adsorption)\nCác bình chứa rây phân tử',
+    params: 'Chênh áp qua thiết bị < 10 MPaG\nH₂ thu hồi đưa về K04431'
+  },
+  {
+    id: 9, stt: 10, factory: 'urea', factoryName: 'UREA',
+    name: '1. Nén CO₂', sub: 'CO₂ Compression',
+    goal: 'Nén CO₂ từ áp suất thấp (0.05 MPaG) lên áp suất cao (15.8 MPaG) để đưa vào tháp tổng hợp Urê.',
+    input: 'CO₂ (99%) từ xưởng Ammonia\nÁp suất 0.05 MPaG, 45°C\nPassivation Air (O₂ 0.25-0.35%)',
+    output: 'CO₂ nén áp cao (15.8 MPaG)\n→ Đưa vào tháp tổng hợp Urê R06101',
+    principle: 'Máy nén ly tâm 4 cấp, mỗi cấp tăng áp dần:\nSau cấp 1: 0.37 → cấp 2: 2.05 → cấp 3: 7.85 → cấp 4: 15.8 MPaG.\nGiữa các cấp có intercooler và bình tách lỏng. Dẫn động bằng turbine hơi KT06101 (hơi HS). Có hệ thống Anti-surge bảo vệ.',
+    equipment: 'K06101: CO₂ Compressor (4 cấp)\nKT06101: Steam Turbine dẫn động\nS06119: Bình tách đầu vào\nCác TĐN & bình tách trung gian',
+    params: 'Áp suất đầu ra: 15.8 MPaG\nTurbine dùng hơi HS\nO₂ thụ động hóa: 0.25-0.35% V'
+  },
+  {
+    id: 10, stt: 11, factory: 'urea', factoryName: 'UREA',
+    name: '2. Tổng hợp Urê cao áp', sub: 'HP Synthesis',
+    goal: 'Phản ứng tạo Urê từ NH₃ và CO₂ qua 2 bước: tạo Carbamate trung gian, sau đó khử nước thành Urê.',
+    input: 'NH₃ lỏng (bơm P06101, 250 barG)\nCO₂ nén (158 barG)\nCarbamate tuần hoàn',
+    output: 'Dung dịch Urê 34%\nCarbamate chưa chuyển hóa\n→ Đưa đến Stripper E06101',
+    principle: '2NH₃ + CO₂ → NH₂COONH₄ (Carbamate, tỏa nhiệt)\nNH₂COONH₄ → CO(NH₂)₂ + H₂O (Urê, thu nhiệt)\nTháp R06101 có 17 đĩa, cao 42.5m. Duy trì NH₃/CO₂ = 3.2-3.6, nhiệt độ 188°C, thời gian lưu 45 phút. Độ chuyển hóa ≈ 68%.',
+    equipment: 'R06101: Urea Synthesis Reactor (17 đĩa, 42.5m)\nP06101: NH₃ High Pressure Pump\nS06101: HP Separator',
+    params: 'Nhiệt độ: 188°C\nÁp suất: 15.6 MPa(a)\nNH₃/CO₂ = 3.2-3.6\nH₂O/CO₂ = 0.4-1.0\nNồng độ Urê ra: 34%\nThời gian lưu: 45 phút'
+  },
+  {
+    id: 11, stt: 12, factory: 'urea', factoryName: 'UREA',
+    name: '3. Phân giải & Thu hồi cao áp', sub: 'HP Decomposition — Stripper',
+    goal: 'Phân giải Carbamate chưa chuyển hóa thành CO₂ và NH₃ để tuần hoàn lại tháp tổng hợp, đồng thời tăng nồng độ dung dịch Urê từ 34% → 43%.',
+    input: 'Dung dịch Urê 34% từ R06101\nHơi trung áp (MS) gia nhiệt',
+    output: 'Dung dịch Urê 43%\nKhí NH₃ + CO₂ → ngưng tụ tại Carbamate Condenser → tuần hoàn về R06101',
+    principle: 'Stripper E06101 dạng ống chùm, gia nhiệt bằng hơi MS (217°C, 21.5 barG). Dung dịch chảy xuống dạng màng trong ống, CO₂ bị strip bởi NH₃ sôi mãnh liệt → pha hơi (NH₃ + CO₂) thoát ra đỉnh → ngưng tụ tại E06105A/B → tuần hoàn về R06101.',
+    equipment: 'E06101: HP Stripper\nE06105A/B: Carbamate Condenser\nS06101: HP Separator\nP06102: Carbamate Pump',
+    params: 'Nhiệt độ đáy: 204°C\nHơi MS: 217°C, 21.5 barG\nÁp suất VH: 147 barG\nUrê ra: 43%'
+  },
+  {
+    id: 12, stt: 13, factory: 'urea', factoryName: 'UREA',
+    name: '4. Phân giải & Thu hồi trung áp', sub: 'MP Decomposition',
+    goal: 'Tiếp tục phân giải Carbamate còn lại ở áp suất trung bình, tăng nồng độ Urê lên 63%. Thu hồi NH₃ và CO₂ tuần hoàn.',
+    input: 'Dung dịch Urê 43% từ E06101\nGiảm áp từ 14.7 → 1.95 MPaG',
+    output: 'Dung dịch Urê 63%\nNH₃ thu hồi → bồn T06105\nCarbamate tuần hoàn → R06101',
+    principle: 'S06102 (MPD) gồm 3 phần: bình tách khí, thiết bị phân giải dạng màng lỏng E06102A/B, bồn chứa T06122. Khí NH₃+CO₂ tách ra được hấp thụ tại C06101, dịch Carbamate bơm P06102 tuần hoàn về cao áp, NH₃ dư ngưng tụ tại E06109 → chứa T06105.',
+    equipment: 'S06102: MP Decomposer\nE06102A/B: MP Heaters\nC06101: MP Absorber\nE06109: NH₃ Condenser\nT06105: NH₃ Storage',
+    params: 'Áp suất: 1.95 MPaG\nUrê ra: 63%\nNH₃ thu hồi → T06105'
+  },
+  {
+    id: 13, stt: 14, factory: 'urea', factoryName: 'UREA',
+    name: '5. Phân giải & Thu hồi thấp áp', sub: 'LP Decomposition',
+    goal: 'Phân giải nốt Carbamate còn sót ở áp suất thấp, tiếp tục tăng nồng độ Urê.',
+    input: 'Dung dịch Urê 63% từ T06122\nGiảm áp xuống 0.42 MPaG',
+    output: 'Dung dịch Urê nồng độ cao hơn\nKhí NH₃ + CO₂ → thu hồi\n→ Đưa đến cụm cô đặc',
+    principle: 'Tương tự trung áp nhưng ở áp suất thấp hơn (0.42 MPaG). Dung dịch được gia nhiệt phân giải, khí tách ra được hấp thụ và tuần hoàn.',
+    equipment: 'S06103: LP Decomposer\nE06107: LP Heater\nE06108: LP Condenser\nC06102: LP Absorber',
+    params: 'Áp suất: 0.42 MPaG\nNhiệt độ: ~130°C'
+  },
+  {
+    id: 14, stt: 15, factory: 'urea', factoryName: 'UREA',
+    name: '6. Cô đặc chân không', sub: 'Vacuum Concentration',
+    goal: 'Cô đặc dung dịch Urê đến 96% trước khi đưa sang tạo hạt. Loại bỏ nước thừa.',
+    input: 'Dung dịch Urê từ LPD\nChân không',
+    output: 'Dung dịch Urê 96%\n→ Đưa sang xưởng Tạo hạt',
+    principle: 'Bay hơi nước trong điều kiện chân không (áp suất thấp → nhiệt độ sôi giảm → tránh phân hủy Urê ở nhiệt độ cao). UFC85/HCHO 37% được thêm vào trước cô đặc để cải thiện cơ tính hạt.',
+    equipment: 'Thiết bị cô đặc chân không\nP06106: Urê Feed Pump\nHệ thống bơm chân không',
+    params: 'Nồng độ Urê ra: ~96%\nThêm UFC85 trước cô đặc'
+  },
+  {
+    id: 15, stt: 16, factory: 'urea', factoryName: 'UREA',
+    name: '7. Xử lý nước công nghệ', sub: 'Process Condensate Treatment',
+    goal: 'Xử lý nước ngưng chứa Urê, NH₃, CO₂ để tái sử dụng hoặc thải đạt tiêu chuẩn.',
+    input: 'Nước ngưng từ các cụm cô đặc, phân giải (chứa NH₃, CO₂, Urê hòa tan)',
+    output: 'Nước sạch tái sử dụng\nNH₃ + CO₂ thu hồi → tuần hoàn',
+    principle: 'Chưng cất/stripping để tách NH₃ và CO₂ khỏi nước, sau đó tuần hoàn lại hệ thống.',
+    equipment: 'Cụm xử lý nước công nghệ\nTháp stripping',
+    params: 'Nước đầu ra đạt tiêu chuẩn tái sử dụng'
+  },
+  {
+    id: 16, stt: 17, factory: 'granule', factoryName: 'TẠO HẠT',
+    name: '1. Tạo hạt tầng sôi', sub: 'Fluidized Bed Granulation',
+    goal: 'Biến dung dịch Urê 96% thành hạt Urê rắn, kích cỡ đồng đều, cơ tính tốt (cứng, ít bụi, không vón cục).',
+    input: 'Dung dịch Urê 96% từ xưởng Urê\nHạt mầm (hạt nhỏ + hạt nghiền tuần hoàn)\nKhông khí nóng',
+    output: 'Hạt Urê thành phẩm\nHạt quá cỡ → nghiền\nHạt nhỏ → tuần hoàn làm mầm',
+    principle: 'Công nghệ Toyo: Dung dịch Urê được phun vào buồng tạo hạt G07601. Các hạt mầm được giữ lơ lửng bởi dòng không khí nóng (tầng sôi). Urê phun lên bề mặt hạt → kết tinh → hạt lớn dần. Sàng rung S07601 phân loại 4 cỡ: sản phẩm, nhỏ, quá cỡ, dạng khối.',
+    equipment: 'G07601: Buồng tạo hạt (Granulator)\nS07601: Sàng rung phân loại\nV07602/V07603/V07611: Băng tải\nMáy nghiền hạt quá cỡ',
+    params: 'Công nghệ: Toyo (Nhật)\nHạt SP làm nguội đến 50°C\nPhân loại 4 cỡ hạt'
+  },
+  {
+    id: 17, stt: 18, factory: 'granule', factoryName: 'TẠO HẠT',
+    name: '2. Thu hồi bụi', sub: 'Dust Recovery',
+    goal: 'Rửa sạch bụi Urê trong không khí thải ra từ buồng tạo hạt, đảm bảo môi trường (bụi < 30 mg/Nm³) và thu hồi Urê.',
+    input: 'Không khí chứa bụi Urê từ G07601, E07605, E07606A/B',
+    output: 'Khí sạch (bụi < 30 mg/Nm³) → xả ra môi trường\nDung dịch Urê loãng ~45% → tuần hoàn về xưởng Urê',
+    principle: 'Tháp rửa bụi: Không khí chứa bụi đi từ dưới lên, dung dịch Urê loãng phun ngược từ trên xuống (trao đổi ngược dòng) → bụi bị rửa sạch. Dung dịch thu hồi ≈ 4% sản lượng.',
+    equipment: 'C07601: Tháp rửa bụi (Dust Scrubber)\nQuạt hút\nLưới lọc, vòi phun, lớp đệm\nBơm tuần hoàn dung dịch',
+    params: 'Bụi ra < 30 mg/Nm³\nDung dịch thu hồi ~45%\nThu hồi ≈ 4% sản lượng'
+  },
+  {
+    id: 18, stt: 19, factory: 'granule', factoryName: 'TẠO HẠT',
+    name: '3. Làm nguội sản phẩm', sub: 'Product Cooling',
+    goal: 'Làm nguội hạt Urê từ nhiệt độ cao xuống 50°C trước khi đóng bao, tránh vón cục và giảm chất lượng khi lưu kho.',
+    input: 'Hạt Urê nóng từ buồng tạo hạt\nKhông khí lạnh (qua E07604)',
+    output: 'Hạt Urê ≤ 50°C → đóng bao/kho chứa rời',
+    principle: 'E07604 làm lạnh không khí bằng NH₃ bay hơi: từ 30°C → 7°C (bão hòa + tách ẩm) → tăng lại 15°C (khí khô). E07605 chia 2 phần: phần 1 làm mát trực tiếp bằng quạt, phần 2 dùng khí khô qua E07604 → tránh hạ nhiệt đột ngột ảnh hưởng cơ tính hạt.',
+    equipment: 'E07604: Air Cooler (NH₃ bay hơi)\nE07605: Product Cooler (2 phần)\nE07606A/B: Final Coolers\nB07605: Quạt cấp khí',
+    params: 'Nhiệt độ hạt ra ≤ 50°C\nKhông khí: 30°C → 7°C → 15°C\nTránh giảm nhiệt đột ngột'
+  },
+  {
+    id: 19, stt: 20, factory: 'granule', factoryName: 'TẠO HẠT',
+    name: '4. Phụ gia UFC85', sub: 'UFC85 / HCHO',
+    goal: 'Bổ sung phụ gia UFC85 (hoặc HCHO 37%) vào dung dịch Urê trước cô đặc/tạo hạt để nâng cao chất lượng sản phẩm.',
+    input: 'UFC85 hoặc Formaldehyde 37%\nDung dịch Urê (trước P06106)',
+    output: 'Dung dịch Urê có phụ gia → cô đặc → tạo hạt',
+    principle: 'UFC85 phản ứng với Urê tạo liên kết chéo, giúp hạt cứng hơn, giảm bụi khi tạo hạt/vận chuyển, giảm kết tảng khi lưu kho.',
+    equipment: 'Bồn chứa UFC85\nBơm định lượng UFC85\nNạp vào đầu hút P06106',
+    params: 'Phụ gia bắt buộc cho CN tạo hạt tầng sôi\nTăng độ cứng hạt\nGiảm bụi và kết tảng'
+  },
+  {
+    id: 20, stt: 21, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '1. Hệ thống khí đầu vào', sub: 'Natural Gas Inlet',
+    goal: 'Tiếp nhận, lọc sạch và phân phối khí tự nhiên (NG) từ GPP Cà Mau cho toàn nhà máy (nguyên liệu + nhiên liệu).',
+    input: 'Khí tự nhiên từ GPP Cà Mau (CH₄ 82.2%, CO₂ 8.1%, C₂H₆ 6.6%...)',
+    output: 'Khí sạch cấp cho xưởng Ammonia (nguyên liệu)\nKhí nhiên liệu cho đuốc, nồi hơi, reformer',
+    principle: 'Khí NG qua S41001 (tách lỏng) → F41001A/B (lọc bụi 99.5%) → F41002 (lọc bụi mịn + condensate) → R41001 (hấp thụ thủy ngân bằng than hoạt tính nhiễm S) → phân phối.',
+    equipment: 'S41001: Bình tách lỏng/bụi\nF41001A/B: Bộ lọc bụi (15 lõi sợi thủy tinh)\nF41002: Bộ lọc bụi mịn + condensate\nR41001: Mercury Guard (than hoạt tính)\nE41001: NG Heater',
+    params: 'Hg vào < 0.9 µg/Nm³\nHg ra < 0.01 µg/Nm³\nF41001: loại 99.5% bụi ≥0.5µm\nÁp suất cấp: ~3.84-4.0 MPaG'
+  },
+  {
+    id: 21, stt: 22, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '2. Hệ thống khí nén', sub: 'Compressed Air / Instrument Air',
+    goal: 'Cung cấp khí nén (Plant Air) và khí điều khiển (Instrument Air) cho toàn nhà máy: vận hành van, dụng cụ đo, khí công nghệ.',
+    input: 'Không khí từ khí quyển',
+    output: 'Plant Air (PA): khí nén thường\nInstrument Air (IA): khí khô, sạch (điểm sương -25°C)',
+    principle: 'Máy nén K31001A~F (1.400 Nm³/h/máy) nén không khí → bình chứa T31001 (109.5 m³, dự trữ 10 phút). Để tạo IA: khí nén qua bộ lọc bụi S31001A/B → làm khô E31001A/B → lọc S31002A/B → bình chứa T31002 (235 m³, 15 phút).',
+    equipment: 'K31001A~F: Máy nén khí (6 máy)\nT31001: Bình chứa PA (109.5 m³)\nS31001, E31001, S31002: Cụm lọc & làm khô\nT31002: Bình chứa IA (235 m³)',
+    params: 'PA: 0.9 MPaG\nIA: 0.85 MPaG, điểm sương -25°C\nDự trữ PA: 10 phút\nDự trữ IA: 15 phút'
+  },
+  {
+    id: 22, stt: 23, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '3. Sản xuất Nitơ', sub: 'Nitrogen Production',
+    goal: 'Cung cấp khí N₂ tinh khiết cho nhà máy: dùng làm khí trơ (purge, blanketing), bảo vệ thiết bị, startup/shutdown.',
+    input: 'Khí nén từ hệ thống PA\nKhông khí',
+    output: 'Khí N₂ tinh khiết ≥ 99.9%\nÁp suất 0.7 MPaG, 25°C',
+    principle: 'Phương pháp chưng cất không khí lỏng: Không khí nén → hấp phụ H₂O, CO₂ (T31101A/B) → làm lạnh sâu qua TĐN E31102 → chưng cất trong tháp C31101 (HP Column). N₂ (sôi -195.8°C) bay lên đỉnh, O₂ (sôi -183°C) chìm xuống đáy.',
+    equipment: 'T31101A/B: Adsorbent (hấp phụ H₂O, CO₂)\nE31102: Main Heat Exchanger\nC31101: HP Column (tháp chưng cất)\nK31101: Compressor\nT31202: Bồn chứa N₂ lỏng (25 m³)',
+    params: 'N₂ ≥ 99.9% vol\nÁp suất: 0.7 MPaG\nNhiệt độ: 25°C\nBồn chứa lỏng: 25 m³'
+  },
+  {
+    id: 23, stt: 24, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '4. Hệ thống nước làm mát', sub: 'Fresh/Cooling Water',
+    goal: 'Cung cấp nước làm mát tuần hoàn (Fresh Water) cho toàn bộ thiết bị trao đổi nhiệt trong nhà máy.',
+    input: 'Nước từ nguồn\nHóa chất chống ăn mòn (Tract 109: NaOH + NaNO₂)\nHóa chất diệt khuẩn (Nalco 7330)',
+    output: 'Nước mát (CWS) cấp cho xưởng Amo, Urê, Phụ trợ\nNước nóng (CWR) → giải nhiệt tại TĐN E21201A~J → quay lại',
+    principle: 'Hệ thống tuần hoàn kín: Bơm P21201A~C (10.838 m³/h/bơm) đẩy nước mát đến các hộ tiêu thụ → nước hấp thu nhiệt → quay về giải nhiệt tại E21201A~J (dạng ống chùm) → tuần hoàn. P21201A chạy turbine hơi HS, B/C chạy motor.',
+    equipment: 'P21201A~C: Bơm nước Fresh\nE21201A~J: Trao đổi nhiệt (10 cụm)\nT21201: Bồn nước Fresh\nHóa chất: Tract 109, Nalco 7330',
+    params: 'Lưu lượng: ~20.000 m³/h (tổng)\nCWS: ~31°C\npH: ~9.8\nNO₂⁻: 500-600 ppm\nP21201A: turbine HS 38 barG'
+  },
+  {
+    id: 24, stt: 25, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '5. Bồn chứa Ammonia', sub: 'NH₃ Storage',
+    goal: 'Tồn trữ NH₃ lỏng sản phẩm ở nhiệt độ thấp (-33°C), cấp NH₃ cho xưởng Urê, xuất bán, và vòng làm lạnh.',
+    input: 'NH₃ lỏng từ xưởng Ammonia',
+    output: 'NH₃ cấp xưởng Urê (P40001A/B)\nNH₃ xuất bán tàu\nNH₃ cấp vòng làm lạnh (P40002)',
+    principle: 'Bồn T40001 dạng trụ đứng, bảo ôn cách nhiệt, vận hành ở -33°C, áp suất 10 kPaG. Máy nén K40001A/B nén hơi NH₃ bay hơi để duy trì nhiệt độ/áp suất. E40001 gia nhiệt NH₃ lỏng bằng methanol (từ -33°C lên 10°C) trước khi cấp Urê.',
+    equipment: 'T40001: Bồn chứa NH₃ (16.400 m³)\nK40001A/B: Máy nén hơi NH₃\nP40001A/B: Bơm cấp NH₃ (ly tâm đứng, 11 cấp)\nP40002: Bơm cracking & cấp vòng lạnh\nE40001: TĐN gia nhiệt NH₃ (methanol)',
+    params: 'Thể tích: 16.400 m³\nNhiệt độ: -33°C\nÁp suất: 10 kPaG\nP40001: áp đẩy 25 bar (Urê), 10-15 bar (tàu)\nK40001: 710 Nm³/h, áp đẩy 17 barG'
+  },
+  {
+    id: 25, stt: 26, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '6. Nồi hơi phụ trợ & Mạng hơi', sub: 'Auxiliary Boiler & Steam Network',
+    goal: 'Sản xuất hơi cao áp (HS) để dẫn động turbine, gia nhiệt, và cấp năng lượng cho toàn nhà máy.',
+    input: 'Khí tự nhiên (nhiên liệu)\nNước khử khoáng (Demi water)\nKhông khí (quạt FD Fan)',
+    output: 'Hơi HS: 38 barG, 380°C\nHơi MS, LS trích từ turbine',
+    principle: 'Nồi hơi F29101 đốt khí NG, cấp 200 tấn hơi HS/h. Nước Demi qua bộ khử khí U29201 (loại O₂, CO₂ ở 130°C) → bơm P29202A/B (57 barG) → nồi hơi → hơi HS. Hơi HS đi qua các turbine → trích hơi MS, LS cho các hộ tiêu thụ.',
+    equipment: 'F29101: Nồi hơi phụ trợ\nU29201: Deaerator (400 tấn/h, 130°C)\nP29202A/B: BFW Pump (8 cấp, biến tần)\nB29101: FD Fan (215.000 m³/h)\nHóa chất: Elimin-Ox (khử O₂), Triact 1800 (pH)',
+    params: 'Công suất: 200 tấn hơi HS/h\nHơi HS: 38 barG, 380°C\nDeaerator: 1.7 barG, 130°C\nBFW Pump: Pđẩy 57 barG'
+  },
+  {
+    id: 26, stt: 27, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '7. Hệ thống đuốc', sub: 'Flare System',
+    goal: 'Đốt an toàn các khí thải, khí dư, khí xả sự cố từ toàn nhà máy. Đảm bảo không xả khí độc/cháy nổ ra môi trường.',
+    input: 'Khí thải từ xưởng Amo, Urê\nKhí sự cố (trip, emergency)\nKhí NG pilot',
+    output: 'Khí đã đốt cháy hoàn toàn → CO₂ + H₂O\nNước ngưng → xử lý nước thải',
+    principle: 'Hệ thống gồm đuốc Amo và đuốc tổng hợp. Khí thải qua bồn làm kín (T51002/T51003, chống cháy ngược) → đỉnh đuốc → đốt cháy. Hệ thống đánh lửa tự động (interlock khi nhiệt độ <200°C). Bình tách T51001/T51004 thu hồi lỏng.',
+    equipment: 'Đuốc Ammonia\nĐuốc tổng hợp (Synthesis Gas)\nT51001/T51004: Bình tách lỏng\nT51002/T51003: Bồn làm kín\nT51005: Bồn chứa\nP51001/P51002: Bơm\nHệ thống đánh lửa PLC18',
+    params: 'Tự động đánh lửa khi <200°C\nBồn làm kín chống cháy ngược\nKiểm soát áp: PT > 2-5 kPa'
+  },
+  {
+    id: 27, stt: 28, factory: 'aux', factoryName: 'PHỤ TRỢ',
+    name: '8. Xử lý nước thải', sub: 'Wastewater Treatment',
+    goal: 'Xử lý nước thải (nhiễm dầu, nhiễm NH₃, sinh hoạt) đạt tiêu chuẩn trước khi xả ra môi trường.',
+    input: 'Nước thải nhiễm dầu\nNước thải nhiễm Ammonia\nNước thải sinh hoạt',
+    output: 'Nước đạt tiêu chuẩn xả thải → môi trường',
+    principle: '① Nước thải nhiễm dầu: Phương pháp tuyển nổi áp suất (DAF) — bão hòa khí dưới 1.5-4 atm → giảm áp → bọt khí mịn nổi lên kéo dầu theo. Chất phá nhũ CaCl₂ hỗ trợ.\n② Nước thải sinh hoạt: Công nghệ AAO (Yếm khí – Thiếu khí – Hiếu khí), công suất 10 m³/h.\n③ Nước thải nhiễm NH₃: Stripping/xử lý riêng.',
+    equipment: 'Hệ thống DAF (tuyển nổi áp suất)\nT36001/T36002/T36003: Bể trung gian\nHệ thống AAO (xử lý sinh hoạt)\nT27015, T26001: Bể thu gom',
+    params: 'DAF: áp suất 1.5-4 atm\nAAO: 10 m³/h\nHóa chất: CaCl₂ (phá nhũ)\n3 loại nước thải xử lý riêng'
+  }
+];
+
+// ===== PFD PAGE MAPPING =====
+// Map từ stt → page number trong PDF gốc (PVCFC training material 2023)
+const PFD_PAGE_MAP = {
+  1:  { page: 25, title: 'Cụm Khử lưu huỳnh', sub: 'Desulfurization (TK-250 / HTZ-5)' },
+  2:  { page: 28, title: 'Cụm Reforming', sub: 'Primary + Secondary Reformer (F04201, R04203)' },
+  3:  { page: 33, title: 'Cụm Chuyển hóa CO', sub: 'HTS + LTS (R04204, R04205)' },
+  4:  { page: 37, title: 'Cụm Tách CO₂', sub: 'aMDEA Absorption (C04301, C04302)' },
+  5:  { page: 43, title: 'Cụm Mê tan hóa', sub: 'Methanation (R04301, xt PK-7R)' },
+  6:  { page: 46, title: 'Cụm Tổng hợp NH₃', sub: 'Synthesis Loop (R04501, K04431)' },
+  7:  { page: 51, title: 'Cụm Làm lạnh NH₃', sub: 'Refrigeration (K441, S502, E506-E509)' },
+  8:  { page: 52, title: 'Cụm Thu hồi NH₃ (ARU)', sub: 'Ammonia Recovery (C551, C552, C553)' },
+  9:  { page: 53, title: 'Cụm Thu hồi H₂ (HRU)', sub: 'Hydrogen Recovery (PSA Z04601A-E)' },
+  10: { page: 69, title: 'Cụm Nén CO₂', sub: 'CO₂ Compressor 4 cấp (K06101, KT06101)' },
+  11: { page: 73, title: 'Tháp Tổng hợp Urê', sub: 'HP Synthesis (R06101, 17 đĩa, 42.5m)' },
+  12: { page: 22, title: 'Cụm Phân giải HP', sub: 'HP Decomposition - xem PFD Ammonia tổng quan', noteOnly: true },
+  13: { page: 77, title: 'Cụm Phân giải MP', sub: 'MP Decomposition (S06102, E06102, C06101)' },
+  14: { page: 85, title: 'Cụm Phân giải LP', sub: 'LP Decomposition (S06103, E06107, E06108)' },
+  15: { page: 88, title: 'Cụm Cô đặc chân không', sub: 'Vacuum Concentration (S06104, S06114, E06104)' },
+  16: { page: 93, title: 'Cụm Xử lý nước CN', sub: 'Process Condensate Treatment (C06102, R06102)' },
+  17: { page: 98, title: 'Cụm Tạo hạt tổng thể', sub: 'Granulation Section (G07601 + Dust Recovery + Cooling)' },
+  18: { page: 98, title: 'Tháp rửa bụi', sub: 'Dust Scrubber (C07601) — xem trong PFD tổng cụm tạo hạt' },
+  19: { page: 98, title: 'Cụm làm nguội hạt', sub: 'Product Cooling (E07604/E07605) — xem trong PFD tổng cụm tạo hạt' },
+  20: { page: 88, title: 'Phụ gia UFC85', sub: 'UFC85 — nạp vào trước cụm cô đặc chân không' },
+  21: { page: 115, title: 'Cụm khí đầu vào', sub: 'Natural Gas Inlet (S41001, F41001, R41001)' },
+  22: { page: 124, title: 'Cụm khí nén PA/IA', sub: 'Plant Air & Instrument Air' },
+  23: { page: 124, title: 'Cụm sản xuất N₂', sub: 'Nitrogen Production (xem cùng cụm khí nén)' },
+  24: { page: 141, title: 'Cụm nước làm mát', sub: 'Cooling Water (T21101, P21101, E21201)' },
+  25: { page: 51, title: 'Bồn chứa NH₃', sub: 'NH₃ Storage — xem trong PFD cụm làm lạnh' },
+  26: { page: 135, title: 'Hệ Demi & Nồi hơi', sub: 'Demineralized Water + Auxiliary Boiler' },
+  27: { page: 180, title: 'Hệ thống đuốc Ammonia', sub: 'Ammonia Flare (T51004, Z51002)' },
+  28: { page: 93, title: 'Xử lý nước thải', sub: 'Wastewater Treatment — xem trong cụm PCT' },
+};
+
+const PFD_OVERVIEW = {
+  amo: { page: 22, title: 'PFD tổng thể Xưởng Ammonia', sub: 'Toàn bộ chuỗi: NG → NH₃ → CO₂ → Urea' },
+  block_amo: { page: 23, title: 'Sơ đồ khối Xưởng Ammonia', sub: '6 cụm chính từ khử S đến tổng hợp NH₃' },
+  urea: { page: 65, title: 'PFD Công nghệ Urea', sub: 'Snamprogetti™ Urea Technology (Saipem)' },
+  block_overall: { page: 20, title: 'Sơ đồ tổng quát Nhà máy', sub: 'Bố trí toàn bộ phân xưởng' },
+};
+
+// ===== STATE =====
+let currentFilter = 'all';
+let currentView = 'grid';
+let currentMode = 'browse';
+let fcItems = [];
+let fcIndex = 0;
+let fcFlipped = false;
+let quizItems = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+const factoryColors = { amo: '#3b82f6', urea: '#10b981', granule: '#f59e0b', aux: '#8b5cf6' };
+const factoryBadgeClass = { amo: 'badge-amo', urea: 'badge-urea', granule: 'badge-granule', aux: 'badge-aux' };
+const factoryActiveClass = { amo: 'active-amo', urea: 'active-urea', granule: 'active-granule', aux: 'active-aux', all: 'active-all' };
+
+// ===== INIT =====
+function init() {
+  initTheme();
+  buildSidebar();
+  renderCards(data);
+}
+
+function buildSidebar() {
+  const groups = { amo: [], urea: [], granule: [], aux: [] };
+  data.forEach(d => groups[d.factory].push(d));
+
+  Object.entries({ amo: 'sidebar-amo', urea: 'sidebar-urea', granule: 'sidebar-granule', aux: 'sidebar-aux' })
+    .forEach(([fac, elId]) => {
+      const el = document.getElementById(elId);
+      el.innerHTML = groups[fac].map(d => `
+        <div class="sidebar-item" onclick="openDetail(${d.id})" id="sb-${d.id}">
+          <span class="sidebar-dot" style="background:${factoryColors[d.factory]}"></span>
+          <span style="font-size:12px">${d.name}</span>
+          <span class="sidebar-number">${d.stt}</span>
+        </div>
+      `).join('');
+    });
+}
+
+// ===== RENDER CARDS =====
+function renderCards(items) {
+  const container = document.getElementById('cardsContainer');
+  if (items.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div>Không tìm thấy kết quả</div>';
+    return;
+  }
+  container.className = currentView === 'grid' ? 'cards-grid' : 'cards-list';
+  container.innerHTML = items.map(d => buildCard(d)).join('');
+}
+
+function buildCard(d) {
+  return `
+    <div class="process-card animate-in" id="card-${d.id}" onclick="toggleCard(${d.id})">
+      <div class="card-header">
+        <span class="card-num">#${d.stt}</span>
+        <div class="card-title-block">
+          <div class="card-title">${d.name}</div>
+          <div class="card-subtitle">${d.sub}</div>
+        </div>
+        <span class="card-factory-badge ${factoryBadgeClass[d.factory]}">${d.factoryName}</span>
+        <span class="card-expand-icon">▼</span>
+      </div>
+      <div class="card-preview">
+        <div style="color:var(--text3);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">🎯 Mục tiêu</div>
+        <div style="margin-bottom:10px">${d.goal}</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="event.stopPropagation();openDetail(${d.id})" style="padding:5px 12px;border-radius:2px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-size:12px;font-family:inherit">📖 Chi tiết đầy đủ</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('expanded');
+}
+
+// ===== FILTER =====
+function filterFactory(fac, el) {
+  currentFilter = fac;
+
+  document.querySelectorAll('.sidebar-item').forEach(i => {
+    i.classList.remove('active', ...Object.values(factoryActiveClass));
+  });
+
+  if (el) {
+    el.classList.add('active', factoryActiveClass[fac] || 'active-all');
+  }
+
+  const filtered = fac === 'all' ? data : data.filter(d => d.factory === fac);
+  const titles = { all: 'Tất cả công đoạn', amo: 'Xưởng Ammonia', urea: 'Xưởng Urea', granule: 'Xưởng Tạo Hạt', aux: 'Xưởng Phụ Trợ' };
+  document.getElementById('viewTitle').textContent = titles[fac] + ` (${filtered.length})`;
+  document.getElementById('searchResults').classList.remove('show');
+  document.getElementById('cardsContainer').style.display = '';
+  document.getElementById('flowDiagram').style.display = fac === 'all' ? '' : 'none';
+  document.getElementById('statsRow').style.display = fac === 'all' ? '' : 'none';
+  renderCards(filtered);
+}
+
+// ===== SEARCH =====
+function handleSearch(q) {
+  const sr = document.getElementById('searchResults');
+  const cc = document.getElementById('cardsContainer');
+
+  if (!q.trim()) {
+    sr.classList.remove('show');
+    cc.style.display = '';
+    return;
+  }
+
+  const qLow = q.toLowerCase();
+  const results = data.filter(d =>
+    [d.name, d.sub, d.goal, d.input, d.output, d.principle, d.equipment, d.params, d.factoryName]
+      .some(t => t && t.toLowerCase().includes(qLow))
+  );
+
+  cc.style.display = 'none';
+  sr.classList.add('show');
+
+  if (results.length === 0) {
+    sr.innerHTML = '<div class="empty-state"><div class="icon">🔍</div>Không tìm thấy kết quả phù hợp</div>';
+    return;
+  }
+
+  function hl(text) {
+    if (!text) return '';
+    return text.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  sr.innerHTML = `<div style="font-size:12px;color:var(--text3);margin-bottom:12px">Tìm thấy <strong style="color:var(--text)">${results.length}</strong> kết quả cho "<strong style="color:var(--amber)">${q}</strong>"</div>` +
+    results.map(d => `
+      <div class="search-result-item" onclick="openDetail(${d.id})">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);background:var(--bg2);border:1px solid var(--border);padding:2px 6px;border-radius:2px">#${d.stt}</span>
+          <strong>${hl(d.name)}</strong> <span style="font-size:12px;color:var(--text3);font-style:italic">${hl(d.sub)}</span>
+          <span class="card-factory-badge ${factoryBadgeClass[d.factory]}" style="margin-left:auto">${d.factoryName}</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--text2)">${hl(d.goal.substring(0, 120))}${d.goal.length > 120 ? '...' : ''}</div>
+      </div>
+    `).join('');
+}
+
+// ===== DETAIL VIEW =====
+function openDetail(id) {
+  const d = data[id];
+  if (!d) return;
+
+  // Highlight sidebar
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active', ...Object.values(factoryActiveClass)));
+  const sbItem = document.getElementById('sb-' + id);
+  if (sbItem) sbItem.classList.add('active', factoryActiveClass[d.factory]);
+
+  const paramChips = d.params.split('\n').map(p => `<span class="param-chip">${p.trim()}</span>`).join('');
+  const equipItems = d.equipment.split('\n').map(e => {
+    const parts = e.trim().split(':');
+    return `<div class="equip-item"><span class="equip-code">${parts[0] || ''}</span><span class="equip-desc">${parts.slice(1).join(':').trim() || ''}</span></div>`;
+  }).join('');
+
+  // PFD section
+  const pfdInfo = PFD_PAGE_MAP[d.stt];
+  let pfdHtml = '';
+  if (pfdInfo) {
+    const pfdImg = getPfdImage(pfdInfo.page);
+    if (pfdImg) {
+      pfdHtml = `
+        <div class="detail-section full">
+          <div class="section-label"><span class="section-icon">📐</span> Sơ đồ công nghệ (PFD)</div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:6px;cursor:zoom-in;margin-bottom:8px" onclick="openPfdLightbox(${pfdInfo.page}, '${pfdInfo.title.replace(/'/g, "\\'")}')">
+            <img src="${pfdImg}" alt="${pfdInfo.title}" style="width:100%;height:auto;display:block;border-radius:0" loading="lazy">
+          </div>
+          <div style="font-size:11.5px;color:var(--text3);font-style:italic">📌 ${pfdInfo.title} — Nhấn để phóng to · Nguồn: PVCFC 2023, trang ${pfdInfo.page}</div>
+        </div>
+      `;
+    }
+  }
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  modal.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:2px;max-width:820px;width:100%;max-height:90vh;overflow-y:auto;position:relative">
+      <div style="position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:12px;z-index:10">
+        <span class="card-factory-badge ${factoryBadgeClass[d.factory]}">${d.factoryName}</span>
+        <strong style="font-size:16px">${d.name}</strong>
+        <span style="font-size:12.5px;color:var(--text3);font-style:italic">${d.sub}</span>
+        <button onclick="this.closest('[style]').remove()" style="margin-left:auto;background:var(--bg2);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:2px;cursor:pointer;font-size:13px">✕ Đóng</button>
+      </div>
+      <div style="padding:24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="detail-section full">
+            <div class="section-label"><span class="section-icon">🎯</span> Mục tiêu</div>
+            <div class="section-content">${d.goal}</div>
+          </div>
+          <div class="detail-section">
+            <div class="section-label"><span class="section-icon">📥</span> Đầu vào</div>
+            <div class="section-content">${d.input.split('\n').join('<br>')}</div>
+          </div>
+          <div class="detail-section">
+            <div class="section-label"><span class="section-icon">📤</span> Đầu ra</div>
+            <div class="section-content">${d.output.split('\n').join('<br>')}</div>
+          </div>
+          <div class="detail-section full">
+            <div class="section-label"><span class="section-icon">⚙️</span> Nguyên lý hoạt động</div>
+            <div class="section-content">${d.principle.split('\n').join('<br>')}</div>
+          </div>
+          <div class="detail-section">
+            <div class="section-label"><span class="section-icon">🔧</span> Thiết bị chính</div>
+            <div class="equip-list">${equipItems}</div>
+          </div>
+          <div class="detail-section">
+            <div class="section-label"><span class="section-icon">📊</span> Thông số vận hành</div>
+            <div class="param-chips">${paramChips}</div>
+          </div>
+          ${pfdHtml}
+        </div>
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// ===== VIEW MODE =====
+function setView(v, btn) {
+  currentView = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = currentFilter === 'all' ? data : data.filter(d => d.factory === currentFilter);
+  renderCards(filtered);
+}
+
+// ===== MODE SWITCH =====
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('browseMode').style.display = mode === 'browse' ? '' : 'none';
+  document.getElementById('pfdMode').style.display = mode === 'pfd' ? '' : 'none';
+  document.getElementById('mindmapMode').style.display = mode === 'mindmap' ? '' : 'none';
+  document.getElementById('flashcardMode').style.display = mode === 'flashcard' ? '' : 'none';
+  document.getElementById('quizMode').style.display = mode === 'quiz' ? '' : 'none';
+
+  if (mode === 'flashcard') initFlashcard();
+  if (mode === 'quiz') renderQuizStart();
+  if (mode === 'mindmap') ensureMindmapInit();
+  if (mode === 'pfd') renderPfd('overview');
+}
+
+// ===== PFD VIEWER =====
+function switchPfdTab(tab) {
+  document.querySelectorAll('.pfd-tab').forEach(t => {
+    t.classList.toggle('pfd-tab-active', t.getAttribute('data-pfd-tab') === tab);
+  });
+  renderPfd(tab);
+}
+
+function getPfdImage(page) {
+  // PFD_IMAGES is loaded from injected base64 data
+  if (typeof PFD_IMAGES === 'undefined') return null;
+  return PFD_IMAGES[page] || null;
+}
+
+function buildPfdCard(processData, pfdInfo) {
+  const img = getPfdImage(pfdInfo.page);
+  const factoryBadge = `<span class="card-factory-badge ${factoryBadgeClass[processData.factory]}">${processData.factoryName}</span>`;
+  const paramSummary = processData.params.split('\n').slice(0, 3).map(p => `<span class="pfd-meta-chip highlight">${p.trim()}</span>`).join('');
+  const equipSummary = processData.equipment.split('\n').slice(0, 2).map(e => {
+    const code = e.split(':')[0].trim();
+    return `<span class="pfd-meta-chip">${code}</span>`;
+  }).join('');
+
+  return `
+    <div class="pfd-card animate-in">
+      <div class="pfd-card-header">
+        <span class="pfd-card-num">#${processData.stt}</span>
+        <div style="flex:1">
+          <div class="pfd-card-title">${pfdInfo.title}</div>
+          <div class="pfd-card-sub">${pfdInfo.sub}</div>
+        </div>
+        ${factoryBadge}
+        <button class="pfd-card-zoom" onclick="openPfdLightbox(${pfdInfo.page}, '${pfdInfo.title.replace(/'/g, "\\'")}')">🔍 Phóng to</button>
+        <button class="pfd-card-zoom" onclick="openDetail(${processData.id})">📖 Chi tiết</button>
+      </div>
+      <div class="pfd-image-wrap" onclick="openPfdLightbox(${pfdInfo.page}, '${pfdInfo.title.replace(/'/g, "\\'")}')">
+        ${img ? `<img src="${img}" alt="${pfdInfo.title}" loading="lazy">` : `<div style="padding:40px;text-align:center;color:var(--text3);background:var(--bg3);border-radius:2px">⚠️ Không có ảnh PFD</div>`}
+      </div>
+      <div class="pfd-card-meta">
+        ${equipSummary}
+        ${paramSummary}
+      </div>
+    </div>
+  `;
+}
+
+function buildPfdOverviewCard(info) {
+  const img = getPfdImage(info.page);
+  return `
+    <div class="pfd-card animate-in">
+      <div class="pfd-card-header">
+        <div style="flex:1">
+          <div class="pfd-card-title">${info.title}</div>
+          <div class="pfd-card-sub">${info.sub}</div>
+        </div>
+        <button class="pfd-card-zoom" onclick="openPfdLightbox(${info.page}, '${info.title.replace(/'/g, "\\'")}')">🔍 Phóng to</button>
+      </div>
+      <div class="pfd-image-wrap" onclick="openPfdLightbox(${info.page}, '${info.title.replace(/'/g, "\\'")}')">
+        ${img ? `<img src="${img}" alt="${info.title}" loading="lazy">` : `<div style="padding:40px;text-align:center;color:var(--text3);background:var(--bg3);border-radius:2px">⚠️ Không có ảnh PFD</div>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderPfd(tab) {
+  const container = document.getElementById('pfdContent');
+
+  if (tab === 'overview') {
+    container.innerHTML = `
+      <div class="pfd-section">
+        <div class="pfd-section-title">📊 PFD tổng thể nhà máy</div>
+        <div class="pfd-section-subtitle">Xem nhanh toàn bộ công nghệ sản xuất từ khí tự nhiên đến đạm urê thành phẩm</div>
+        ${buildPfdOverviewCard(PFD_OVERVIEW.block_overall)}
+        ${buildPfdOverviewCard(PFD_OVERVIEW.block_amo)}
+        ${buildPfdOverviewCard(PFD_OVERVIEW.amo)}
+        ${buildPfdOverviewCard(PFD_OVERVIEW.urea)}
+      </div>
+    `;
+    return;
+  }
+
+  // Filter processes by factory
+  const processes = data.filter(d => d.factory === tab);
+  // Track shown pages to avoid duplicates
+  const shownPages = new Set();
+
+  let html = `<div class="pfd-section"><div class="pfd-section-title">${
+    tab === 'amo' ? '🏭 Xưởng Ammonia' :
+    tab === 'urea' ? '🧪 Xưởng Urea' :
+    tab === 'granule' ? '⚪ Xưởng Tạo Hạt' :
+    '🔧 Xưởng Phụ Trợ'
+  }</div>
+  <div class="pfd-section-subtitle">${processes.length} công đoạn — Sơ đồ công nghệ chi tiết theo từng cụm</div>`;
+
+  processes.forEach(p => {
+    const pfdInfo = PFD_PAGE_MAP[p.stt];
+    if (pfdInfo) {
+      html += buildPfdCard(p, pfdInfo);
+    }
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function openPfdLightbox(page, caption) {
+  const img = getPfdImage(page);
+  if (!img) { alert('Không có ảnh PFD cho trang này'); return; }
+
+  let lightbox = document.getElementById('pfdLightbox');
+  if (!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.id = 'pfdLightbox';
+    lightbox.className = 'pfd-lightbox';
+    lightbox.innerHTML = `
+      <button class="pfd-lightbox-close" onclick="closePfdLightbox()">✕</button>
+      <img id="pfdLightboxImg" src="" alt="">
+      <div class="pfd-lightbox-caption" id="pfdLightboxCaption"></div>
+    `;
+    lightbox.addEventListener('click', e => { if (e.target === lightbox) closePfdLightbox(); });
+    document.body.appendChild(lightbox);
+  }
+  document.getElementById('pfdLightboxImg').src = img;
+  document.getElementById('pfdLightboxCaption').textContent = `${caption} — Trang ${page} (PVCFC 2023)`;
+  lightbox.classList.add('show');
+  document.addEventListener('keydown', pfdLightboxKeyHandler);
+}
+
+function closePfdLightbox() {
+  const lightbox = document.getElementById('pfdLightbox');
+  if (lightbox) lightbox.classList.remove('show');
+  document.removeEventListener('keydown', pfdLightboxKeyHandler);
+}
+
+function pfdLightboxKeyHandler(e) {
+  if (e.key === 'Escape') closePfdLightbox();
+}
+
+// ===== FLASHCARD =====
+function initFlashcard() {
+  const fac = document.getElementById('fcFactory').value;
+  fcItems = fac === 'all' ? [...data] : data.filter(d => d.factory === fac);
+  // Shuffle
+  for (let i = fcItems.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fcItems[i], fcItems[j]] = [fcItems[j], fcItems[i]];
+  }
+  fcIndex = 0;
+  fcFlipped = false;
+  document.getElementById('flashcard').style.transform = 'rotateY(0deg)';
+  renderFC();
+}
+
+function renderFC() {
+  if (fcItems.length === 0) return;
+  const d = fcItems[fcIndex];
+  document.getElementById('fc-num').textContent = d.stt;
+  document.getElementById('fc-name').textContent = d.name;
+  document.getElementById('fc-sub').textContent = d.sub;
+  document.getElementById('fc-factory-badge').innerHTML = `<span class="card-factory-badge ${factoryBadgeClass[d.factory]}">${d.factoryName}</span>`;
+  document.getElementById('fc-progress').textContent = `${fcIndex + 1} / ${fcItems.length}`;
+
+  const paramChips = d.params.split('\n').map(p => `<span class="param-chip" style="font-size:10.5px">${p.trim()}</span>`).join('');
+
+  document.getElementById('fc-back-content').innerHTML = `
+    <div style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px">📖 Chi tiết công đoạn</div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">🎯 Mục tiêu</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.55">${d.goal}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div>
+        <div style="font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">📥 Đầu vào</div>
+        <div style="font-size:12px;color:var(--text2)">${d.input.split('\n').join('<br>')}</div>
+      </div>
+      <div>
+        <div style="font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">📤 Đầu ra</div>
+        <div style="font-size:12px;color:var(--text2)">${d.output.split('\n').join('<br>')}</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">📊 Thông số</div>
+      <div class="param-chips">${paramChips}</div>
+    </div>
+  `;
+}
+
+function flipCard() {
+  fcFlipped = !fcFlipped;
+  document.getElementById('flashcard').style.transform = fcFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+}
+
+function navigateFC(dir) {
+  fcIndex = (fcIndex + dir + fcItems.length) % fcItems.length;
+  fcFlipped = false;
+  document.getElementById('flashcard').style.transform = 'rotateY(0deg)';
+  setTimeout(renderFC, 50);
+}
+
+// ===== QUIZ =====
+function renderQuizStart() {
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-card" style="text-align:center;padding:40px">
+      <div style="font-size:40px;margin-bottom:16px">🧪</div>
+      <h2 style="font-size:20px;margin-bottom:8px">Kiểm tra kiến thức</h2>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:24px">Chọn xưởng và bắt đầu làm bài. Mỗi câu hỏi có 4 lựa chọn.</p>
+      <button class="btn btn-primary" onclick="startQuiz()" style="font-size:14px;padding:10px 28px">▶ Bắt đầu ngay</button>
+    </div>
+  `;
+}
+
+function startQuiz() {
+  const fac = document.getElementById('quizFactory').value;
+  const pool = fac === 'all' ? [...data] : data.filter(d => d.factory === fac);
+  if (pool.length < 4) { alert('Cần ít nhất 4 công đoạn để làm quiz!'); return; }
+
+  // Generate questions
+  quizItems = generateQuestions(pool, Math.min(10, pool.length));
+  quizIndex = 0;
+  quizScore = 0;
+  renderQuestion();
+}
+
+function generateQuestions(pool, count) {
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const types = ['goal', 'params', 'equipment', 'input', 'output'];
+  return shuffled.slice(0, count).map(d => {
+    const type = types[Math.floor(Math.random() * types.length)];
+    const others = pool.filter(x => x.id !== d.id).sort(() => Math.random() - 0.5).slice(0, 3);
+
+    let question, correctAnswer, wrongAnswers;
+
+    if (type === 'goal') {
+      question = `Mục tiêu chính của công đoạn "${d.name}" là gì?`;
+      correctAnswer = d.goal.substring(0, 100) + (d.goal.length > 100 ? '...' : '');
+      wrongAnswers = others.map(o => o.goal.substring(0, 100) + (o.goal.length > 100 ? '...' : ''));
+    } else if (type === 'params') {
+      const paramLines = d.params.split('\n').filter(p => p.trim());
+      const param = paramLines[0];
+      question = `Thông số vận hành nào đúng cho công đoạn "${d.name}"?`;
+      correctAnswer = param;
+      wrongAnswers = others.map(o => o.params.split('\n')[0]);
+    } else if (type === 'equipment') {
+      question = `Thiết bị nào là chính trong công đoạn "${d.name}"?`;
+      const eq = d.equipment.split('\n')[0];
+      correctAnswer = eq;
+      wrongAnswers = others.map(o => o.equipment.split('\n')[0]);
+    } else if (type === 'input') {
+      question = `Đầu vào của công đoạn "${d.name}" là gì?`;
+      correctAnswer = d.input.split('\n')[0];
+      wrongAnswers = others.map(o => o.input.split('\n')[0]);
+    } else {
+      question = `Đầu ra của công đoạn "${d.name}" là gì?`;
+      correctAnswer = d.output.split('\n')[0];
+      wrongAnswers = others.map(o => o.output.split('\n')[0]);
+    }
+
+    const options = [{ text: correctAnswer, correct: true },
+      ...wrongAnswers.map(w => ({ text: w, correct: false }))
+    ].sort(() => Math.random() - 0.5);
+
+    return { question, options, explanation: d.goal, processId: d.id, factoryBadge: `<span class="card-factory-badge ${factoryBadgeClass[d.factory]}">${d.factoryName}</span>` };
+  });
+}
+
+function renderQuestion() {
+  if (quizIndex >= quizItems.length) {
+    renderQuizResult();
+    return;
+  }
+  quizAnswered = false;
+  const q = quizItems[quizIndex];
+  const pct = (quizIndex / quizItems.length) * 100;
+
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-card animate-in">
+      <div class="quiz-progress">
+        <div class="quiz-bar"><div class="quiz-fill" style="width:${pct}%"></div></div>
+        <span class="quiz-count">${quizIndex + 1}/${quizItems.length}</span>
+        <span class="quiz-score">Đúng: <strong>${quizScore}</strong></span>
+      </div>
+      <div style="margin-bottom:10px">${q.factoryBadge}</div>
+      <div class="quiz-question">${q.question}</div>
+      <div class="quiz-options" id="quizOptions">
+        ${q.options.map((opt, i) => `
+          <button class="quiz-option" onclick="answerQuiz(${i})">${opt.text}</button>
+        `).join('')}
+      </div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <div class="quiz-nav">
+        <div></div>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none">Tiếp theo →</button>
+      </div>
+    </div>
+  `;
+}
+
+function answerQuiz(idx) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = quizItems[quizIndex];
+  const opts = document.querySelectorAll('.quiz-option');
+  const fb = document.getElementById('quizFeedback');
+  opts.forEach(o => o.disabled = true);
+
+  if (q.options[idx].correct) {
+    quizScore++;
+    opts[idx].classList.add('correct');
+    fb.className = 'quiz-feedback correct-fb';
+    fb.style.display = 'block';
+    fb.innerHTML = `✅ <strong>Chính xác!</strong> ${q.explanation.substring(0, 120)}...`;
+  } else {
+    opts[idx].classList.add('wrong');
+    const correctIdx = q.options.findIndex(o => o.correct);
+    opts[correctIdx].classList.add('correct');
+    fb.className = 'quiz-feedback wrong-fb';
+    fb.style.display = 'block';
+    fb.innerHTML = `❌ <strong>Chưa đúng.</strong> Đáp án đúng: <em>${q.options[correctIdx].text}</em>`;
+  }
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  quizIndex++;
+  renderQuestion();
+}
+
+function renderQuizResult() {
+  const pct = Math.round((quizScore / quizItems.length) * 100);
+  const msg = pct >= 80 ? '🎉 Xuất sắc!' : pct >= 60 ? '👍 Khá tốt!' : '📚 Cần ôn thêm!';
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-card" style="text-align:center;padding:40px">
+      <div style="font-size:48px;margin-bottom:16px">${msg.split(' ')[0]}</div>
+      <h2 style="font-size:24px;margin-bottom:8px">${msg.substring(2)}</h2>
+      <div style="font-size:52px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${pct>=80?'var(--green)':pct>=60?'var(--amber)':'var(--red)'};margin:16px 0">${pct}%</div>
+      <div style="color:var(--text2);margin-bottom:24px">Đúng <strong style="color:var(--text)">${quizScore}</strong> / ${quizItems.length} câu</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-ghost" onclick="startQuiz()">🔄 Làm lại</button>
+        <button class="btn btn-primary" onclick="setMode('browse')">📚 Ôn thêm</button>
+      </div>
+    </div>
+  `;
+}
+
+// ===== MINDMAP =====
+const mindmapNodes = [
+  // ===== AUX zone (top, feeds the plant) =====
+  { id: 'ng', stt: 21, x: 60, y: 80, w: 130, h: 50, label: 'Khí tự nhiên\n(GPP Cà Mau)', factory: 'aux', subtype: 'input' },
+  { id: 'air', stt: null, x: 60, y: 150, w: 130, h: 40, label: 'Không khí', factory: 'aux', subtype: 'input' },
+  { id: 'water', stt: 24, x: 60, y: 210, w: 130, h: 40, label: 'Nước làm mát', factory: 'aux', subtype: 'aux' },
+  { id: 'n2', stt: 23, x: 60, y: 270, w: 130, h: 40, label: 'Sản xuất N₂', factory: 'aux', subtype: 'aux' },
+  { id: 'comp-air', stt: 22, x: 60, y: 330, w: 130, h: 40, label: 'Khí nén PA/IA', factory: 'aux', subtype: 'aux' },
+
+  // ===== AMMONIA zone =====
+  { id: 'desulf', stt: 1, x: 250, y: 80, w: 140, h: 60, label: '1. Khử lưu huỳnh\nDesulfurization', factory: 'amo' },
+  { id: 'reform', stt: 2, x: 420, y: 80, w: 140, h: 60, label: '2. Reforming\nPrimary + Secondary', factory: 'amo' },
+  { id: 'shift', stt: 3, x: 590, y: 80, w: 140, h: 60, label: '3. Chuyển hóa CO\nHTS + LTS', factory: 'amo' },
+  { id: 'co2rem', stt: 4, x: 760, y: 80, w: 140, h: 60, label: '4. Tách CO₂\n(aMDEA)', factory: 'amo' },
+  { id: 'methan', stt: 5, x: 760, y: 180, w: 140, h: 60, label: '5. Mê tan hóa\nMethanation', factory: 'amo' },
+  { id: 'synth', stt: 6, x: 590, y: 180, w: 140, h: 60, label: '6. Tổng hợp NH₃\nSynthesis Loop', factory: 'amo' },
+  { id: 'refrig', stt: 7, x: 420, y: 180, w: 140, h: 60, label: '7. Vòng làm lạnh\nRefrigeration', factory: 'amo' },
+  { id: 'aru', stt: 8, x: 420, y: 260, w: 140, h: 50, label: '8. Thu hồi NH₃ (ARU)', factory: 'amo' },
+  { id: 'hru', stt: 9, x: 590, y: 260, w: 140, h: 50, label: '9. Thu hồi H₂ (HRU)', factory: 'amo' },
+
+  // ===== STORAGE (bridges) =====
+  { id: 'nh3-tank', stt: 25, x: 760, y: 290, w: 140, h: 60, label: '🛢️ Bồn chứa NH₃\n(-33°C, 16.400 m³)', factory: 'aux', subtype: 'storage' },
+  { id: 'co2-supply', stt: null, x: 980, y: 80, w: 90, h: 50, label: 'CO₂\n1.790 t/d', factory: 'amo', subtype: 'product' },
+
+  // ===== UREA zone =====
+  { id: 'co2-comp', stt: 10, x: 980, y: 180, w: 140, h: 60, label: '1. Nén CO₂\nCO₂ Compression', factory: 'urea' },
+  { id: 'hp-synth', stt: 11, x: 980, y: 280, w: 140, h: 60, label: '2. Tổng hợp Urê\nHP Synthesis', factory: 'urea' },
+  { id: 'hp-decomp', stt: 12, x: 980, y: 380, w: 140, h: 60, label: '3. Phân giải HP\nStripper', factory: 'urea' },
+  { id: 'mp-decomp', stt: 13, x: 980, y: 470, w: 140, h: 50, label: '4. Phân giải MP', factory: 'urea' },
+  { id: 'lp-decomp', stt: 14, x: 980, y: 540, w: 140, h: 50, label: '5. Phân giải LP', factory: 'urea' },
+  { id: 'concen', stt: 15, x: 980, y: 610, w: 140, h: 50, label: '6. Cô đặc chân không\n(Urê 96%)', factory: 'urea' },
+  { id: 'water-trt', stt: 16, x: 800, y: 540, w: 140, h: 50, label: '7. Xử lý nước CN', factory: 'urea' },
+  { id: 'ufc85', stt: 20, x: 800, y: 610, w: 140, h: 50, label: '🧪 Phụ gia UFC85', factory: 'granule', subtype: 'add' },
+
+  // ===== GRANULE zone =====
+  { id: 'granul', stt: 17, x: 1200, y: 380, w: 140, h: 60, label: '1. Tạo hạt tầng sôi\nFluidized Bed', factory: 'granule' },
+  { id: 'cooling', stt: 19, x: 1200, y: 470, w: 140, h: 50, label: '3. Làm nguội hạt', factory: 'granule' },
+  { id: 'dust', stt: 18, x: 1380, y: 380, w: 130, h: 50, label: '2. Thu hồi bụi', factory: 'granule' },
+
+  // ===== FINAL PRODUCT =====
+  { id: 'product', stt: null, x: 1200, y: 560, w: 140, h: 60, label: '✅ ĐẠM URÊ\nThành phẩm', factory: 'granule', subtype: 'product' },
+
+  // ===== SUPPORT (bottom) =====
+  { id: 'boiler', stt: 26, x: 250, y: 670, w: 130, h: 50, label: 'Nồi hơi & Mạng hơi', factory: 'aux', subtype: 'aux' },
+  { id: 'flare', stt: 27, x: 410, y: 670, w: 130, h: 50, label: 'Hệ thống đuốc', factory: 'aux', subtype: 'aux' },
+  { id: 'wastewater', stt: 28, x: 570, y: 670, w: 140, h: 50, label: 'Xử lý nước thải', factory: 'aux', subtype: 'aux' },
+];
+
+// Map stt to data id
+function sttToDataId(stt) {
+  if (stt == null) return null;
+  const found = data.find(d => d.stt === stt);
+  return found ? found.id : null;
+}
+
+const mindmapEdges = [
+  // Inputs feeding ammonia
+  { from: 'ng', to: 'desulf', color: 'blue', label: 'NG' },
+  { from: 'air', to: 'reform', color: 'blue', label: 'không khí' },
+
+  // Ammonia main flow (top row L→R)
+  { from: 'desulf', to: 'reform', color: 'blue' },
+  { from: 'reform', to: 'shift', color: 'blue' },
+  { from: 'shift', to: 'co2rem', color: 'blue' },
+  // Bend down to second row
+  { from: 'co2rem', to: 'methan', color: 'blue' },
+  { from: 'methan', to: 'synth', color: 'blue' },
+  { from: 'synth', to: 'refrig', color: 'gray', label: 'làm lạnh', dashed: true },
+
+  // CO2 to Urea
+  { from: 'co2rem', to: 'co2-supply', color: 'amber' },
+  { from: 'co2-supply', to: 'co2-comp', color: 'amber', label: 'CO₂ 99%' },
+
+  // NH3 to storage and Urea
+  { from: 'synth', to: 'nh3-tank', color: 'green', label: 'NH₃ lỏng' },
+  { from: 'nh3-tank', to: 'hp-synth', color: 'green', label: 'NH₃' },
+
+  // Recovery loops back to synth
+  { from: 'synth', to: 'aru', color: 'gray', dashed: true, label: 'purge' },
+  { from: 'synth', to: 'hru', color: 'gray', dashed: true },
+  { from: 'aru', to: 'synth', color: 'green', dashed: true, label: 'NH₃ thu hồi' },
+  { from: 'hru', to: 'synth', color: 'gray', dashed: true, label: 'H₂' },
+
+  // Urea cascade
+  { from: 'co2-comp', to: 'hp-synth', color: 'amber' },
+  { from: 'hp-synth', to: 'hp-decomp', color: 'green', label: 'Urê 34%' },
+  { from: 'hp-decomp', to: 'mp-decomp', color: 'green', label: '43%' },
+  { from: 'mp-decomp', to: 'lp-decomp', color: 'green', label: '63%' },
+  { from: 'lp-decomp', to: 'concen', color: 'green' },
+
+  // Recycle loops in urea
+  { from: 'hp-decomp', to: 'hp-synth', color: 'purple', dashed: true, label: 'Carbamate' },
+  { from: 'mp-decomp', to: 'hp-synth', color: 'purple', dashed: true },
+  { from: 'lp-decomp', to: 'water-trt', color: 'gray', dashed: true },
+  { from: 'water-trt', to: 'lp-decomp', color: 'purple', dashed: true, label: 'tuần hoàn' },
+
+  // Granulation
+  { from: 'concen', to: 'granul', color: 'green', label: 'Urê 96%' },
+  { from: 'ufc85', to: 'concen', color: 'purple', dashed: true, label: 'phụ gia' },
+  { from: 'granul', to: 'cooling', color: 'green' },
+  { from: 'granul', to: 'dust', color: 'gray', dashed: true, label: 'khí thải' },
+  { from: 'dust', to: 'lp-decomp', color: 'purple', dashed: true, label: 'Urê thu hồi' },
+  { from: 'cooling', to: 'product', color: 'green' },
+
+  // Refrigeration to granule cooling
+  { from: 'refrig', to: 'cooling', color: 'gray', dashed: true, label: 'NH₃ lạnh' },
+
+  // Aux services (subtle dashed)
+  { from: 'water', to: 'co2rem', color: 'purple', dashed: true },
+  { from: 'water', to: 'mp-decomp', color: 'purple', dashed: true },
+];
+
+const mindmapZones = [
+  { x: 30, y: 50, w: 200, h: 380, label: 'XƯỞNG PHỤ TRỢ', color: 'aux' },
+  { x: 240, y: 50, w: 510, h: 280, label: 'XƯỞNG AMMONIA', color: 'amo' },
+  { x: 750, y: 150, w: 230, h: 240, label: 'CẦU NỐI', color: 'mid' },
+  { x: 970, y: 150, w: 160, h: 520, label: 'XƯỞNG UREA', color: 'urea' },
+  { x: 1190, y: 360, w: 340, h: 260, label: 'XƯỞNG TẠO HẠT', color: 'granule' },
+  { x: 240, y: 650, w: 480, h: 90, label: 'HỖ TRỢ VẬN HÀNH', color: 'aux' },
+];
+
+let mmZoom = 1, mmPanX = 0, mmPanY = 0;
+let highlightFlows = false;
+
+function renderMindmap() {
+  const svg = document.getElementById('mindmapSvg');
+  const zonesG = document.getElementById('zones');
+  const zoneLabelsG = document.getElementById('zone-labels');
+  const connG = document.getElementById('connections');
+  const nodesG = document.getElementById('nodes');
+
+  // Zones
+  const zoneColors = {
+    amo: { fill: 'rgba(0,86,211,0.04)', stroke: 'rgba(0,86,211,0.25)', text: '#0056d3' },
+    urea: { fill: 'rgba(4,120,87,0.04)', stroke: 'rgba(4,120,87,0.25)', text: '#047857' },
+    granule: { fill: 'rgba(217,119,6,0.04)', stroke: 'rgba(217,119,6,0.25)', text: '#d97706' },
+    aux: { fill: 'rgba(124,58,237,0.04)', stroke: 'rgba(124,58,237,0.25)', text: '#7c3aed' },
+    mid: { fill: 'rgba(0,0,0,0.02)', stroke: 'rgba(0,0,0,0.08)', text: '#6b7280' },
+  };
+
+  zonesG.innerHTML = mindmapZones.map(z => {
+    const c = zoneColors[z.color];
+    return `<rect x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="14" ry="14" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1" stroke-dasharray="4 3"/>`;
+  }).join('');
+
+  zoneLabelsG.innerHTML = mindmapZones.map(z => {
+    const c = zoneColors[z.color];
+    return `<text x="${z.x + 14}" y="${z.y + 22}" font-family="'IBM Plex Sans',sans-serif" font-size="11" font-weight="700" fill="${c.text}" letter-spacing="1.5">${z.label}</text>`;
+  }).join('');
+
+  // Connections
+  const colorMap = {
+    blue: '#3b82f6', green: '#10b981', amber: '#f59e0b', purple: '#8b5cf6', gray: '#5a6e96'
+  };
+
+  function getNode(id) { return mindmapNodes.find(n => n.id === id); }
+
+  function buildPath(from, to) {
+    // Center coords
+    const fx = from.x + from.w / 2;
+    const fy = from.y + from.h / 2;
+    const tx = to.x + to.w / 2;
+    const ty = to.y + to.h / 2;
+
+    // Determine entry/exit points based on relative position
+    const dx = tx - fx;
+    const dy = ty - fy;
+
+    let x1, y1, x2, y2;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal dominant
+      if (dx > 0) { x1 = from.x + from.w; y1 = fy; x2 = to.x; y2 = ty; }
+      else { x1 = from.x; y1 = fy; x2 = to.x + to.w; y2 = ty; }
+    } else {
+      // Vertical dominant
+      if (dy > 0) { x1 = fx; y1 = from.y + from.h; x2 = tx; y2 = to.y; }
+      else { x1 = fx; y1 = from.y; x2 = tx; y2 = to.y + to.h; }
+    }
+
+    // Use bezier with control points
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const isHoriz = Math.abs(x2 - x1) > Math.abs(y2 - y1);
+
+    const cp1x = isHoriz ? mx : x1;
+    const cp1y = isHoriz ? y1 : my;
+    const cp2x = isHoriz ? mx : x2;
+    const cp2y = isHoriz ? y2 : my;
+
+    return { d: `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`, mx: (x1+x2)/2, my: (y1+y2)/2 };
+  }
+
+  connG.innerHTML = mindmapEdges.map((e, i) => {
+    const from = getNode(e.from);
+    const to = getNode(e.to);
+    if (!from || !to) return '';
+    const { d, mx, my } = buildPath(from, to);
+    const color = colorMap[e.color] || '#5a6e96';
+    const dash = e.dashed ? 'stroke-dasharray="5 4"' : '';
+    const opacity = highlightFlows ? '1' : '0.55';
+    const sw = highlightFlows ? '2.2' : '1.6';
+
+    let labelEl = '';
+    if (e.label) {
+      labelEl = `
+        <g class="edge-label" style="pointer-events:none">
+          <rect x="${mx - e.label.length*3 - 4}" y="${my - 8}" width="${e.label.length*6 + 8}" height="16" rx="3" fill="rgba(255,255,255,0.95)" stroke="${color}" stroke-opacity="0.4"/>
+          <text x="${mx}" y="${my + 3}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="${color}" font-weight="600">${e.label}</text>
+        </g>
+      `;
+    }
+
+    return `
+      <g class="edge" data-from="${e.from}" data-to="${e.to}">
+        <path d="${d}" fill="none" stroke="${color}" stroke-width="${sw}" ${dash} marker-end="url(#arr-${e.color})" opacity="${opacity}"/>
+        ${labelEl}
+      </g>
+    `;
+  }).join('');
+
+  // Nodes
+  const factoryFills = {
+    amo: { bg: '#dbeafe', border: '#0056d3', text: '#1e3a8a' },
+    urea: { bg: '#d1fae5', border: '#047857', text: '#064e3b' },
+    granule: { bg: '#fef3c7', border: '#d97706', text: '#78350f' },
+    aux: { bg: '#ede9fe', border: '#7c3aed', text: '#4c1d95' },
+  };
+
+  const subtypeStyles = {
+    input: { ry: 22 },
+    storage: { ry: 30 },
+    product: { ry: 12 },
+    add: { ry: 8 },
+    aux: { ry: 8 },
+  };
+
+  nodesG.innerHTML = mindmapNodes.map(n => {
+    const f = factoryFills[n.factory];
+    const ry = (subtypeStyles[n.subtype] && subtypeStyles[n.subtype].ry) || 8;
+    const dataId = sttToDataId(n.stt);
+    const clickable = dataId !== null;
+    const lines = n.label.split('\n');
+
+    const lineHeight = 14;
+    const startY = n.y + n.h/2 - ((lines.length - 1) * lineHeight) / 2 + 4;
+
+    // Pill or rounded rectangle
+    return `
+      <g class="mm-node" data-id="${n.id}" data-data-id="${dataId !== null ? dataId : ''}" 
+         style="cursor:${clickable ? 'pointer' : 'default'}">
+        <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${ry}" ry="${ry}"
+              fill="${f.bg}" stroke="${f.border}" stroke-width="${n.subtype === 'product' ? '2.5' : '1.5'}"
+              ${n.subtype === 'product' ? 'filter="url(#glow)"' : ''}/>
+        ${n.stt ? `<text x="${n.x + 8}" y="${n.y + 14}" font-family="'JetBrains Mono',monospace" font-size="9" font-weight="700" fill="${f.text}" opacity="0.6">#${n.stt}</text>` : ''}
+        ${lines.map((line, i) => `
+          <text x="${n.x + n.w/2}" y="${startY + i * lineHeight}" 
+                text-anchor="middle"
+                font-family="'IBM Plex Sans',sans-serif" 
+                font-size="${i === 0 ? '11.5' : '10'}" 
+                font-weight="${i === 0 ? '700' : '500'}"
+                fill="${f.text}">${line}</text>
+        `).join('')}
+      </g>
+    `;
+  }).join('');
+
+  // Click handlers
+  nodesG.querySelectorAll('.mm-node').forEach(el => {
+    el.addEventListener('click', () => {
+      const dataId = el.getAttribute('data-data-id');
+      if (dataId !== '') openDetail(parseInt(dataId));
+    });
+    el.addEventListener('mouseenter', () => {
+      const id = el.getAttribute('data-id');
+      // Highlight connected edges
+      connG.querySelectorAll('.edge').forEach(edge => {
+        const isConn = edge.getAttribute('data-from') === id || edge.getAttribute('data-to') === id;
+        edge.style.opacity = isConn ? '1' : '0.15';
+      });
+      el.style.filter = 'brightness(1.25)';
+    });
+    el.addEventListener('mouseleave', () => {
+      connG.querySelectorAll('.edge').forEach(edge => edge.style.opacity = '');
+      el.style.filter = '';
+    });
+  });
+
+  applyMindmapTransform();
+}
+
+function applyMindmapTransform() {
+  const svg = document.getElementById('mindmapSvg');
+  svg.style.transform = `translate(${mmPanX}px, ${mmPanY}px) scale(${mmZoom})`;
+}
+
+function zoomMindmap(factor) {
+  mmZoom = Math.max(0.4, Math.min(2.5, mmZoom * factor));
+  applyMindmapTransform();
+}
+
+function resetMindmapZoom() {
+  mmZoom = 1; mmPanX = 0; mmPanY = 0;
+  applyMindmapTransform();
+}
+
+function toggleFlowsHighlight() {
+  highlightFlows = !highlightFlows;
+  document.getElementById('flowToggleBtn').classList.toggle('btn-primary', highlightFlows);
+  document.getElementById('flowToggleBtn').classList.toggle('btn-ghost', !highlightFlows);
+  renderMindmap();
+}
+
+function setupMindmapInteraction() {
+  const container = document.getElementById('mindmapContainer');
+  let isDragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+
+  container.addEventListener('mousedown', e => {
+    if (e.target.closest('.mm-node')) return;
+    isDragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startPanX = mmPanX; startPanY = mmPanY;
+    container.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    mmPanX = startPanX + (e.clientX - startX);
+    mmPanY = startPanY + (e.clientY - startY);
+    applyMindmapTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDragging = false;
+    container.style.cursor = 'grab';
+  });
+
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.91;
+    mmZoom = Math.max(0.4, Math.min(2.5, mmZoom * factor));
+    applyMindmapTransform();
+  }, { passive: false });
+
+  // Touch support for mobile
+  let touchStartDist = 0, touchStartZoom = 1;
+  container.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      startPanX = mmPanX; startPanY = mmPanY;
+    } else if (e.touches.length === 2) {
+      isDragging = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      touchStartDist = Math.sqrt(dx*dx + dy*dy);
+      touchStartZoom = mmZoom;
+    }
+  });
+  container.addEventListener('touchmove', e => {
+    if (e.touches.length === 1 && isDragging) {
+      mmPanX = startPanX + (e.touches[0].clientX - startX);
+      mmPanY = startPanY + (e.touches[0].clientY - startY);
+      applyMindmapTransform();
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      mmZoom = Math.max(0.4, Math.min(2.5, touchStartZoom * (dist / touchStartDist)));
+      applyMindmapTransform();
+    }
+    e.preventDefault();
+  }, { passive: false });
+  container.addEventListener('touchend', () => { isDragging = false; });
+}
+
+let mindmapInitialized = false;
+function ensureMindmapInit() {
+  if (mindmapInitialized) return;
+  renderMindmap();
+  setupMindmapInteraction();
+  mindmapInitialized = true;
+}
+
+// ===== THEME =====
+function initTheme() {
+  const saved = localStorage.getItem('pvcfc-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = saved === 'light' ? '🌙' : '☀️';
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('pvcfc-theme', next);
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = next === 'light' ? '🌙' : '☀️';
+}
+
+// ===== START =====
