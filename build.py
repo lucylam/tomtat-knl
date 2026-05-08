@@ -78,11 +78,16 @@ EXTRA_CSS = '''
 #other-container .fc-back { background:var(--bg3); border:1px solid var(--border2); transform:rotateY(180deg); overflow-y:auto; text-align:left; align-items:stretch; }
 
 /* ===== VAN/INSTRU SKILL – STRUCTURED BROWSE ===== */
-.van-section { margin-bottom:24px; }
-.van-sec-hdr { display:flex; align-items:center; gap:10px; padding:8px 0 10px; border-bottom:1px solid var(--border2); margin-bottom:12px; }
-.van-sec-bar { width:3px; height:18px; border-radius:0; flex-shrink:0; }
-.van-sec-title { font-size:11px; font-weight:800; letter-spacing:0.09em; text-transform:uppercase; color:var(--text); }
-.van-sec-cnt { font-size:10.5px; color:var(--text3); margin-left:auto; }
+.van-section { margin-bottom:14px; }
+.van-sec-hdr { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:4px 4px 0 0; cursor:pointer; user-select:none; margin-bottom:10px; transition:filter 0.15s; }
+.van-sec-hdr:hover { filter:brightness(1.1); }
+.van-sec-title { font-size:11.5px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; }
+.van-sec-cnt { font-size:10.5px; color:var(--text3); background:rgba(0,0,0,0.15); padding:1px 6px; border-radius:10px; }
+.van-sec-arrow { margin-left:auto; font-size:11px; opacity:0.7; transition:transform 0.2s ease; }
+.van-section.collapsed .van-sec-arrow { transform:rotate(-90deg); }
+.van-section.collapsed .van-grid,
+.van-section.collapsed .other-cards-grid,
+.van-section.collapsed .cards-list { display:none; }
 .van-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px; }
 .van-card { background:var(--card); border:1px solid var(--border); border-radius:2px; overflow:hidden; transition:border-color 0.15s; }
 .van-card:hover { border-color:var(--blue); }
@@ -127,10 +132,10 @@ HEADER_HTML = f'''<header>
   <div class="header-inner">
     <div class="logo">
       {logo_line}
-      <div class="logo-text">PVCFC <span>— Kiến thức nhà máy</span></div>
+      <div class="logo-text">PVCFC <span>— Tóm tắt kiến thức</span></div>
     </div>
     <div class="skill-selector">
-      <span style="font-size:10.5px;color:var(--text3);letter-spacing:0.05em;font-weight:600;white-space:nowrap">KỸ NĂNG:</span>
+      <span style="font-size:10.5px;color:var(--text3);letter-spacing:0.05em;font-weight:600;white-space:nowrap">ĐẦU MỤC:</span>
       <div class="skill-dropdown" id="skillDropdown">
         <button class="skill-dd-trigger" id="skillDdTrigger" onclick="toggleSkillMenu()">
           <span class="skill-dd-label" id="skillDdLabel">🏭 Tổng quan nhà máy</span>
@@ -297,6 +302,19 @@ let currentSkillId = 'nhamay';
 let otherCurrentSkill = 'htdk';
 let otherCurrentFilter = 'all';
 let otherSearchQuery = '';
+let collapsedSections = new Set();
+
+function toggleVanSection(hdr) {{
+  const sec = hdr.closest('.van-section');
+  const id = sec.dataset.secid;
+  if (collapsedSections.has(id)) {{
+    collapsedSections.delete(id);
+    sec.classList.remove('collapsed');
+  }} else {{
+    collapsedSections.add(id);
+    sec.classList.add('collapsed');
+  }}
+}}
 
 function onSearchInput(val) {{
   if (currentSkillId === 'nhamay') {{
@@ -415,17 +433,9 @@ function otherSetView(v, btn) {{
 
 function otherRenderCards() {{
   const skill = OTHER_SKILLS[otherCurrentSkill];
-  let items = skill.data;
-  if (otherCurrentFilter !== 'all') items = items.filter(d => d.cat === otherCurrentFilter);
-  if (otherSearchQuery) items = items.filter(d =>
-    d.name.toLowerCase().includes(otherSearchQuery) ||
-    (d.sub  && d.sub.toLowerCase().includes(otherSearchQuery)) ||
-    (d.goal && d.goal.toLowerCase().includes(otherSearchQuery))
-  );
-  const container = document.getElementById('otherCardsContainer');
-  container.className = otherCurrentView === 'grid' ? 'other-cards-grid' : 'cards-list';
   document.getElementById('otherBrowseTitle').textContent = '📚 ' + skill.name;
-  container.innerHTML = items.map(d => {{
+  const container = document.getElementById('otherCardsContainer');
+  const mkCard = (d) => {{
     const cat = skill.categories.find(c => c.id === d.cat);
     const color = cat ? cat.color : skill.color;
     const catName = cat ? cat.name : '';
@@ -436,7 +446,42 @@ function otherRenderCards() {{
       '<span style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + color + '15;color:' + color + ';border:1px solid ' + color + '30;flex-shrink:0">' + catName + '</span>' +
       '<span style="font-size:12px;color:var(--text3);flex-shrink:0;margin-top:3px">↗</span>' +
       '</div><div class="card-preview">' + d.goal + '</div></div>';
-  }}).join('');
+  }};
+  if (otherCurrentFilter !== 'all') {{
+    let items = skill.data.filter(d => d.cat === otherCurrentFilter);
+    if (otherSearchQuery) items = items.filter(d =>
+      d.name.toLowerCase().includes(otherSearchQuery) ||
+      (d.sub && d.sub.toLowerCase().includes(otherSearchQuery)) ||
+      (d.goal && d.goal.toLowerCase().includes(otherSearchQuery))
+    );
+    container.className = otherCurrentView === 'grid' ? 'other-cards-grid' : 'cards-list';
+    container.innerHTML = items.map(mkCard).join('');
+    return;
+  }}
+  container.className = '';
+  let html = '';
+  skill.categories.forEach(cat => {{
+    let items = skill.data.filter(d => d.cat === cat.id);
+    if (otherSearchQuery) items = items.filter(d =>
+      d.name.toLowerCase().includes(otherSearchQuery) ||
+      (d.sub && d.sub.toLowerCase().includes(otherSearchQuery)) ||
+      (d.goal && d.goal.toLowerCase().includes(otherSearchQuery))
+    );
+    if (!items.length) return;
+    const secId = otherCurrentSkill + '_' + cat.id;
+    const collapsed = collapsedSections.has(secId) ? ' collapsed' : '';
+    html += '<div class="van-section' + collapsed + '" data-secid="' + secId + '">' +
+      '<div class="van-sec-hdr" onclick="toggleVanSection(this)" style="background:' + cat.color + '18;border-left:3px solid ' + cat.color + '">' +
+        '<span class="van-sec-title" style="color:' + cat.color + '">' + cat.name.toUpperCase() + '</span>' +
+        '<span class="van-sec-cnt">' + items.length + ' mục</span>' +
+        '<span class="van-sec-arrow">▾</span>' +
+      '</div>' +
+      '<div class="' + (otherCurrentView === 'grid' ? 'other-cards-grid' : 'cards-list') + '">' +
+        items.map(mkCard).join('') +
+      '</div>' +
+    '</div>';
+  }});
+  container.innerHTML = html;
 }}
 
 function openPopup(skillId, id) {{
@@ -763,12 +808,14 @@ function renderVanBrowse() {
              (d.goal && d.goal.toLowerCase().includes(otherSearchQuery));
     });
     if (!items.length) return;
+    const secId = 'van_' + sec.id;
+    const collapsed = collapsedSections.has(secId) ? ' collapsed' : '';
     html +=
-      '<div class="van-section">' +
-        '<div class="van-sec-hdr">' +
-          '<span class="van-sec-bar" style="background:' + sec.color + '"></span>' +
+      '<div class="van-section' + collapsed + '" data-secid="' + secId + '">' +
+        '<div class="van-sec-hdr" onclick="toggleVanSection(this)" style="background:' + sec.color + '18;border-left:3px solid ' + sec.color + '">' +
           '<span class="van-sec-title" style="color:' + sec.color + '">' + sec.e + ' ' + sec.label + '</span>' +
           '<span class="van-sec-cnt">' + items.length + ' mục</span>' +
+          '<span class="van-sec-arrow">▾</span>' +
         '</div>' +
         '<div class="van-grid">' +
           items.map(d => renderVanCard(skill, d, otherCurrentSkill)).join('') +

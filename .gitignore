@@ -1,0 +1,12 @@
+# Temp / patch scripts (dùng một lần, không cần track)
+patch_*.py
+test_script.js
+tmp_check.js
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
