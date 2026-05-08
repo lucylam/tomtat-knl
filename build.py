@@ -1115,7 +1115,11 @@ html = f'''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PVCFC — Kỹ Năng Lực Nhà Máy Đạm Cà Mau</title>
+<title>PVCFC — Tóm tắt kiến thức Nhà máy Đạm Cà Mau</title>
+<meta name="description" content="Tóm tắt kiến thức vận hành nhà máy Đạm Cà Mau: thiết bị đo lường, thiết bị chấp hành, hệ thống điều khiển, tổng quan nhà máy.">
+<meta property="og:title" content="PVCFC — Tóm tắt kiến thức Nhà máy Đạm Cà Mau">
+<meta property="og:description" content="Tóm tắt kiến thức vận hành nhà máy Đạm Cà Mau: thiết bị đo lường, thiết bị chấp hành, hệ thống điều khiển, tổng quan nhà máy.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
