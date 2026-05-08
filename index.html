@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PVCFC — Kỹ Năng Lực Nhà Máy Đạm Cà Mau</title>
+<title>PVCFC — Tóm tắt kiến thức Nhà máy Đạm Cà Mau</title>
+<meta name="description" content="Tóm tắt kiến thức vận hành nhà máy Đạm Cà Mau: thiết bị đo lường, thiết bị chấp hành, hệ thống điều khiển, tổng quan nhà máy.">
+<meta property="og:title" content="PVCFC — Tóm tắt kiến thức Nhà máy Đạm Cà Mau">
+<meta property="og:description" content="Tóm tắt kiến thức vận hành nhà máy Đạm Cà Mau: thiết bị đo lường, thiết bị chấp hành, hệ thống điều khiển, tổng quan nhà máy.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2925,7 +2929,7 @@ const OTHER_SKILLS = {
         cells:[
           { l:'Chuyển động',  v:'Tịnh tiến (Màng cao su/PTFE)' },
           { l:'Phân loại',    c:[{t:'Weir type (điều tiết)',k:'weir'},{t:'Straight-through (ON-OFF)'}] },
-          { l:'Actuator',     c:[{t:'Diaphragm actuator (ITT)',k:'f657'}], w:1 },
+          { l:'Actuator',     c:[{t:'Diaphragm actuator (ITT)'}], w:1 },
           { l:'Positioner',   v:'Khi điều tiết Weir type' },
           { l:'Ứng dụng',     v:'Lưu chất ăn mòn, bùn, vô trùng – không packing' },
         ],
@@ -4305,7 +4309,7 @@ function renderVanCard(skill, d, skillId) {
   const cat   = skill.categories.find(c => c.id === d.cat);
   const color = cat ? cat.color : skill.color;
   const catNm = cat ? cat.name  : '';
-  const cellsHtml = (d.cells || []).filter(cell => cell.c).map(cell => {
+  const cellsHtml = (d.cells || []).map(cell => {
     const wide = cell.w ? ' full' : '';
     let inner;
     if (cell.c) {
